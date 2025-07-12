@@ -1,0 +1,162 @@
+# Usar a imagem oficial do PHP com Apache
+FROM php:8.2-apache
+
+# Defina as variáveis de ambiente para o GLPI
+ENV GLPI_VERSION="10.0.16"
+ENV GLPI_LANGUAGE="pt_BR"
+
+# Atualiza os pacotes
+RUN apt-get update && apt-get upgrade -y
+
+## Instalar extensões necessárias para o GLPI
+RUN apt-get update && apt-get install -y \
+zlib1g-dev \
+libpng-dev \
+libjpeg-dev \
+mariadb-client \
+libfreetype6-dev \
+libxml2-dev \
+unzip \
+git \
+locales \
+libmariadb-dev-compat \
+libmariadb-dev \
+libpng-dev \
+libjpeg-dev \
+libfreetype6-dev \
+zlib1g-dev \
+libzip-dev \
+unzip \
+wget \
+cron \
+vim 
+
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+#&& docker-php-ext-install mysqli \
+#RUN docker-php-ext-install mysqli pdo pdo_mysql gd zip exif ldap intl opcache \
+RUN docker-php-ext-install intl zip ldap mysqli opcache 
+RUN a2enmod rewrite \
+&& rm -rf /var/lib/apt/lists/*
+
+# Instale o Composer para o Marketplace do GLPI
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Instalando o Composer (gerenciador de dependências PHP)
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Habilite o Zend OPcache
+RUN docker-php-ext-enable opcache
+
+# Configura o MySQL (ajuste a senha)
+#RUN mysql_secure_installation \
+#  -u root \
+#  -p sua_senha_forte
+
+# Baixe e extraia o GLPI
+# Baixa e descompacta o GLPI (ajuste o caminho para o arquivo)
+WORKDIR /var/www/html
+RUN wget -O- https://github.com/glpi-project/glpi/releases/download/10.0.16/glpi-10.0.16.tgz | tar -zxv -C /var/www/html/
+# Baixar a versão mais recente do GLPI
+#RUN wget https://github.com/glpi-project/glpi/releases/download/10.0.6/glpi-10.0.6.tgz
+
+# Extrair o arquivo baixado e remover o arquivo comprimido
+#RUN tar -xvzf glpi-10.0.6.tgz && \
+#    rm glpi-10.0.6.tgz
+
+
+
+#RUN curl -o glpi-latest.tgz -L https://github.com/glpi-project/glpi/releases/latest/download/glpi.tgz \
+#    && tar -xzf glpi-latest.tgz -C /var/www/html \
+#    && rm glpi-latest.tgz
+
+#RUN wget https://download.glpi-project.org/glpi-9.5.4.tar.gz \
+#  && tar -xzvf glpi-9.5.4.tar.gz
+
+# Configura as permissões (ajuste conforme necessário)
+RUN chown -R www-data:www-data /var/www/html \
+&& chmod -R 755 /var/www/html
+
+# Configura o Apache (ajuste o DocumentRoot)
+#COPY apache2.conf /etc/apache2/apache2.conf
+
+# Executa o script de instalação do GLPI (ajuste o caminho para o script)
+#####RUN php /var/www/html/install/install.php
+
+# Exporta as variáveis de ambiente do GLPI (ajuste conforme necessário)
+#ENV GLPI_DATABASE_SERVER=localhost \
+#    GLPI_DATABASE_NAME=glpi \
+#    GLPI_DATABASE_USER=root \
+#    GLPI_DATABASE_PASSWORD=sua_senha_forte
+
+COPY GLPI-Install.sh /var/www/html
+COPY .htaccess /var/www/html 
+RUN chmod 644 /var/www/html/.htaccess && chown -R www-data:www-data /var/www/html
+
+RUN /etc/init.d/apache2 restart
+# Executa o Apache
+#CMD ["apachectl", "-D", "FOREGROUND"]
+
+#COPY GLPI-Install.sh /var/www/html
+
+# Defina variáveis de ambiente para a conexão com o RDS
+#ENV GLPI_DB_HOST=<seu-rds-endpoint>
+#ENV GLPI_DB_USER=<seu-usuario>
+#ENV GLPI_DB_PASSWORD=<sua-senha>
+#ENV GLPI_DB_NAME=<nome-do-banco>
+
+# Mova os diretórios de dados para fora da raiz da web por questões de segurança
+RUN mkdir -p /var/glpi-data \
+    && mv /var/www/html/glpi/files /var/glpi-data/files \
+    && mv /var/www/html/glpi/config /var/glpi-data/config \
+    && ln -s /var/glpi-data/files /var/www/html/glpi/files \
+    && ln -s /var/glpi-data/config /var/www/html/glpi/config
+
+# Defina o diretório raiz do servidor web
+RUN sed -i "s|DocumentRoot /var/www/html|DocumentRoot /var/www/html/glpi/public|g" /etc/apache2/sites-available/000-default.conf
+
+# Configuração de segurança para sessões
+RUN a2enmod rewrite \
+    && echo "php_value[session.cookie_httponly] = 1" >> /usr/local/etc/php/conf.d/security.ini \
+    && echo "php_value[session.cookie_secure] = 1" >> /usr/local/etc/php/conf.d/security.ini
+
+# Instalar o cron para GLPI (opcional)
+#RUN apt-get install -y cron
+
+# Instalar utilitários adicionais para a CLI do GLPI
+#RUN apt-get install -y git locales
+
+# Configurar o idioma local para o GLPI (exemplo para Português)
+RUN echo "pt_BR.UTF-8 UTF-8" >> /etc/locale.gen && \
+    locale-gen pt_BR.UTF-8
+
+#####RUN /var/www/html/GLPI-Install.sh
+
+# Script para configurar o GLPI via CLI e subir o Apache
+COPY setup-GLPI.sh /usr/local/bin/setup-glpi.sh
+RUN chmod +x /usr/local/bin/setup-glpi.sh
+
+WORKDIR /var/www/html/glpi
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]
+
+# Comando de inicialização (instalação/atualização via CLI)
+#CMD ["bash", "-c", "if [ ! -f /var/www/html/glpi/config/config_db.php ]; then echo 'Instalação do GLPI via CLI'; else echo 'GLPI já está instalado'; fi && apache2-foreground"]
+
+# Comando de inicialização (instalação/atualização via CLI)
+#CMD ["bash", "-c", "if [ ! -f /var/www/html/glpi/config/config_db.php ]; then \
+#   echo 'Configurando GLPI com RDS'; \
+#    cp /var/www/html/glpi/config/config_db.php.dist /var/www/html/glpi/config/config_db.php; \
+#    sed -i 's/localhost/$GLPI_DB_HOST/' /var/www/html/glpi/config/config_db.php; \
+#    sed -i 's/glpi/$GLPI_DB_NAME/' /var/www/html/glpi/config/config_db.php; \
+#    sed -i 's/glpiuser/$GLPI_DB_USER/' /var/www/html/glpi/config/config_db.php; \
+#    sed -i 's/glpipassword/$GLPI_DB_PASSWORD/' /var/www/html/glpi/config/config_db.php; \
+#    echo 'Instalação completa'; \
+#    else echo 'GLPI já está instalado'; \
+#    fi && apache2-foreground"]
+
+
+# Definir o comando de inicialização do contêiner
+
+#CMD ["bash", "/usr/local/bin/setup-glpi.sh"]

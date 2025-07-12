@@ -1,0 +1,58 @@
+# Use a imagem oficial do PHP com Apache
+FROM php:8.2-apache
+
+# Defina as variáveis de ambiente para a versão do GLPI
+ENV GLPI_VERSION="10.0.9"
+ENV GLPI_LANGUAGE="pt_BR"
+ENV GLPI_INSTALL_DIR="/var/www/html/glpi"
+ENV GLPI_DATA_DIR="/var/glpi-data"
+
+# Instale as dependências do sistema e extensões PHP necessárias
+RUN apt-get update && apt-get install -y \
+    mariadb-client \
+    wget \
+    unzip \
+    libldap2-dev \
+    zlib1g-dev \
+    libicu-dev \
+    libxml2-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd intl zip ldap mysqli opcache \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Baixe e instale o GLPI
+RUN wget https://github.com/glpi-project/glpi/releases/download/${GLPI_VERSION}/glpi-${GLPI_VERSION}.tgz \
+    && tar -xvzf glpi-${GLPI_VERSION}.tgz -C /var/www/html/ \
+    && rm glpi-${GLPI_VERSION}.tgz
+
+# Mova diretórios de dados para fora do webroot por segurança
+RUN mkdir -p ${GLPI_DATA_DIR}/files ${GLPI_DATA_DIR}/config \
+    && mv ${GLPI_INSTALL_DIR}/files/* ${GLPI_DATA_DIR}/files/ \
+    && mv ${GLPI_INSTALL_DIR}/config/* ${GLPI_DATA_DIR}/config/ \
+    && ln -s ${GLPI_DATA_DIR}/files ${GLPI_INSTALL_DIR}/files \
+    && ln -s ${GLPI_DATA_DIR}/config ${GLPI_INSTALL_DIR}/config
+
+# Ajuste o DocumentRoot para garantir que arquivos não públicos fiquem seguros
+RUN sed -i "s|DocumentRoot /var/www/html|DocumentRoot ${GLPI_INSTALL_DIR}/public|g" /etc/apache2/sites-available/000-default.conf
+
+# Habilite o módulo Apache rewrite e configure segurança para sessões
+RUN a2enmod rewrite \
+    && echo "php_value[session.cookie_httponly] = 1" >> /usr/local/etc/php/conf.d/security.ini \
+    && echo "php_value[session.cookie_secure] = 1" >> /usr/local/etc/php/conf.d/security.ini
+
+# Ajuste permissões de diretório
+RUN chown -R www-data:www-data ${GLPI_INSTALL_DIR} ${GLPI_DATA_DIR} \
+    && chmod -R 755 ${GLPI_INSTALL_DIR} ${GLPI_DATA_DIR}
+
+# Instale o GLPI via CLI (necessita banco de dados acessível)
+COPY glpi_install.sh /usr/local/bin/glpi_install.sh
+RUN chmod +x /usr/local/bin/glpi_install.sh
+
+# Exponha a porta padrão do Apache
+EXPOSE 80
+
+# Inicie o Apache e execute o script de instalação
+CMD ["sh", "-c", "/usr/local/bin/glpi_install.sh && apache2-foreground"]

@@ -1,0 +1,35 @@
+# Usar a imagem oficial do PHP com Apache
+FROM php:8.1-apache
+
+# Instalar extensões necessárias para o GLPI
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    zlib1g-dev \
+    libzip-dev \
+    unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install mysqli pdo pdo_mysql zip \
+    && a2enmod rewrite
+
+# Definir diretório de trabalho
+WORKDIR /var/www/html
+
+# Baixar a versão mais recente do GLPI
+RUN curl -o glpi.tgz -L https://github.com/glpi-project/glpi/releases/download/10.0.7/glpi-10.0.7.tgz \
+    && tar -xzf glpi.tgz \
+    && rm glpi.tgz \
+    && mv glpi/* . \
+    && rm -rf glpi
+
+# Ajustar permissões
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Expor a porta 80 (Apache)
+EXPOSE 80
+
+# Comando para iniciar o Apache
+CMD ["apache2-foreground"]

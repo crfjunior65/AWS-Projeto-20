@@ -1,0 +1,60 @@
+# Use uma imagem PHP com Apache como base
+FROM php:8.2-apache
+
+# Defina as variáveis de ambiente para o GLPI
+ENV GLPI_VERSION="10.0.9"
+ENV GLPI_LANGUAGE="pt_BR"
+
+# Instale as dependências necessárias para o GLPI
+RUN apt-get update && apt-get install -y \
+    mariadb-client \
+    wget \
+    unzip \
+    libldap2-dev \
+    zlib1g-dev \
+    libicu-dev \
+    libxml2-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install intl zip ldap mysqli opcache gd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instale o Composer para o Marketplace do GLPI
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Habilite o Zend OPcache
+RUN docker-php-ext-enable opcache
+
+# Habilite o módulo Apache rewrite
+RUN a2enmod rewrite
+
+# Baixe e instale o GLPI
+RUN wget https://github.com/glpi-project/glpi/releases/download/${GLPI_VERSION}/glpi-${GLPI_VERSION}.tgz \
+    && tar -xvzf glpi-${GLPI_VERSION}.tgz -C /var/www/html/ \
+    && rm glpi-${GLPI_VERSION}.tgz
+
+# Mova os diretórios de dados para fora da raiz da web por questões de segurança
+RUN mkdir -p /var/glpi-data \
+    && mv /var/www/html/glpi/files /var/glpi-data/files \
+    && mv /var/www/html/glpi/config /var/glpi-data/config \
+    && ln -s /var/glpi-data/files /var/www/html/glpi/files \
+    && ln -s /var/glpi-data/config /var/www/html/glpi/config
+
+# Ajuste o DocumentRoot para garantir segurança na raiz da web
+RUN sed -i "s|DocumentRoot /var/www/html|DocumentRoot /var/www/html/glpi/public|g" /etc/apache2/sites-available/000-default.conf
+
+# Configuração de segurança para sessões
+RUN echo "php_value[session.cookie_httponly] = 1" >> /usr/local/etc/php/conf.d/security.ini \
+    && echo "php_value[session.cookie_secure] = 1" >> /usr/local/etc/php/conf.d/security.ini
+
+# Ajuste permissões de diretório
+RUN chown -R www-data:www-data /var/www/html/glpi /var/glpi-data \
+    && chmod -R 755 /var/www/html/glpi /var/glpi-data
+
+# Exponha a porta padrão do Apache
+EXPOSE 80
+
+# Comando para iniciar o Apache
+CMD ["apache2-foreground"]

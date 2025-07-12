@@ -1,0 +1,43 @@
+Da lentidão à agilidade: Migrando o GLPI para a AWS e transformando a gestão de TI da fictícia Upper Plan
+
+Introdução:
+
+A Upper Plan, como muitas empresas, enfrentava desafios com a lentidão e escalabilidade do seu sistema de gestão de chamados GLPI. Essa situação impactava diretamente a produtividade da equipe de TI e a satisfação dos usuários. Para solucionar esse problema, decidimos embarcar em uma jornada de transformação digital, migrando o GLPI para a nuvem AWS. 
+
+Desafios e Soluções:
+
+A migração não foi isenta de desafios, pois, como estudo, decidimos a utilização do endereçamento IPv6. O principal deles foi a configuração de alguns recursos na AWS, que ainda apresenta algumas limitações. No entanto, ao utilizar IPv4 e dual stack, conseguimos superar esse obstáculo e garantir a conectividade da nossa solução.
+
+Resultados:
+
+Os resultados da migração foram surpreendentes:
+
+- Redução no tempo médio de resolução de chamados: A equipe de TI agora consegue atender aos usuários de forma mais rápida e eficiente.
+- Aumento na disponibilidade do sistema: O GLPI está sempre online, garantindo a continuidade dos serviços.
+- Escalabilidade para atender ao crescimento da empresa: A infraestrutura na AWS permite que o sistema se adapte facilmente à demanda crescente.
+- Melhoria da experiência do usuário final: Os usuários agora podem abrir chamados de qualquer lugar e a qualquer hora, com uma interface mais rápida e intuitiva.
+
+Tecnologia Utilizada:
+
+- Terraform: Implementação por IaC (Infraestrutura como código)
+- AWS: EC2, RDS, Elasticache, ELB, CloudFront
+- GLPI: Software de gestão de chamados open source
+
+Aprendizados e Próximos Passos:
+
+Essa experiência nos proporcionou um aprendizado valioso sobre as possibilidades da nuvem AWS e as melhores práticas para migração de sistemas. Nossos próximos passos incluem:
+
+- Otimização contínua: Monitorar o desempenho da solução e realizar ajustes finos para garantir a melhor performance.
+- Expansão de funcionalidades: Integrar o GLPI com outras ferramentas da nossa stack tecnológica, como sistemas de help desk e ferramentas de automação.
+
+Conclusão:
+
+A migração do GLPI para a AWS foi um sucesso e transformou a forma como a Upper Plan gerencia seus serviços de TI. Essa experiência demonstra o poder da nuvem em impulsionar a inovação e a eficiência nas empresas. Ela nos mostrou a importância de estarmos sempre atualizados com as últimas tecnologias e de buscar soluções criativas para os problemas.
+
+Agradecimentos:
+
+Um agradecimento especial à galera do projeto, Adriano Braganca de Oliveira e Guilherme Balz, pela parceria e disposição em encarar mais esse desafio! E claro, não poderíamos deixar de agradecer à Cloud Treinamentos por proporcionar essa oportunidade incrível de aprender e crescer na 20ª oficina de projetos.
+
+Hashtags: hashtag#migracao hashtag#aws hashtag#cloud hashtag#glpi hashtag#ti hashtag#tecnologia hashtag#devops hashtag#infraestrutura hashtag#cloudtreinamentos
+
+Arquitetura da Solução:

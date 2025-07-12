@@ -1,0 +1,205 @@
+ami_ubuntu_linux = {
+  "architecture" = "x86_64"
+  "arn" = "arn:aws:ec2:us-east-1::image/ami-04a98573e58903ee0"
+  "block_device_mappings" = toset([
+    {
+      "device_name" = "/dev/sda1"
+      "ebs" = tomap({
+        "delete_on_termination" = "true"
+        "encrypted" = "false"
+        "iops" = "0"
+        "snapshot_id" = "snap-00693df7a4215bd35"
+        "throughput" = "0"
+        "volume_size" = "8"
+        "volume_type" = "gp2"
+      })
+      "no_device" = ""
+      "virtual_name" = ""
+    },
+    {
+      "device_name" = "/dev/sdb"
+      "ebs" = tomap({})
+      "no_device" = ""
+      "virtual_name" = "ephemeral0"
+    },
+    {
+      "device_name" = "/dev/sdc"
+      "ebs" = tomap({})
+      "no_device" = ""
+      "virtual_name" = "ephemeral1"
+    },
+  ])
+  "boot_mode" = "uefi-preferred"
+  "creation_date" = "2024-09-13T02:55:44.000Z"
+  "deprecation_time" = "2026-09-13T02:55:44.000Z"
+  "description" = "Canonical, Ubuntu, 22.04 LTS, amd64 jammy image build on 2024-09-13"
+  "ena_support" = true
+  "executable_users" = tolist(null) /* of string */
+  "filter" = toset([
+    {
+      "name" = "name"
+      "values" = toset([
+        "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*",
+      ])
+    },
+    {
+      "name" = "virtualization-type"
+      "values" = toset([
+        "hvm",
+      ])
+    },
+  ])
+  "hypervisor" = "xen"
+  "id" = "ami-04a98573e58903ee0"
+  "image_id" = "ami-04a98573e58903ee0"
+  "image_location" = "amazon/ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20240913"
+  "image_owner_alias" = "amazon"
+  "image_type" = "machine"
+  "imds_support" = ""
+  "include_deprecated" = false
+  "kernel_id" = ""
+  "most_recent" = true
+  "name" = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20240913"
+  "name_regex" = tostring(null)
+  "owner_id" = "099720109477"
+  "owners" = tolist([
+    "099720109477",
+  ])
+  "platform" = ""
+  "platform_details" = "Linux/UNIX"
+  "product_codes" = toset([])
+  "public" = true
+  "ramdisk_id" = ""
+  "root_device_name" = "/dev/sda1"
+  "root_device_type" = "ebs"
+  "root_snapshot_id" = "snap-00693df7a4215bd35"
+  "sriov_net_support" = "simple"
+  "state" = "available"
+  "state_reason" = tomap({
+    "code" = "UNSET"
+    "message" = "UNSET"
+  })
+  "tags" = tomap({})
+  "timeouts" = null /* object */
+  "tpm_support" = ""
+  "usage_operation" = "RunInstances"
+  "virtualization_type" = "hvm"
+}
+iam_instance_profile_ssm_profile_name = "ec2-ssm-profile"
+iam_ssm_profile = {
+  "arn" = "arn:aws:iam::654654346517:instance-profile/ec2-ssm-profile"
+  "create_date" = "2024-09-16T21:20:03Z"
+  "id" = "ec2-ssm-profile"
+  "name" = "ec2-ssm-profile"
+  "name_prefix" = ""
+  "path" = "/"
+  "role" = "ec2-ssm-role"
+  "tags" = tomap({})
+  "tags_all" = tomap({
+    "Environment" = "Projeto_20"
+    "Management" = "Terraform"
+    "Terraform" = "true"
+  })
+  "unique_id" = "AIPAZQ3DQSUK3NWW53ASY"
+}
+sg_acesso_alb = "ec2-ssm-role-20240916212003454000000002"
+sg_efs = {
+  "arn" = "arn:aws:ec2:us-east-1:654654346517:security-group/sg-0c78ba781d6766463"
+  "description" = "acesso-efs"
+  "egress" = toset([
+    {
+      "cidr_blocks" = tolist([
+        "0.0.0.0/0",
+      ])
+      "description" = ""
+      "from_port" = 0
+      "ipv6_cidr_blocks" = tolist([])
+      "prefix_list_ids" = tolist([])
+      "protocol" = "-1"
+      "security_groups" = toset([])
+      "self" = false
+      "to_port" = 0
+    },
+  ])
+  "id" = "sg-0c78ba781d6766463"
+  "ingress" = toset([
+    {
+      "cidr_blocks" = tolist([
+        "0.0.0.0/0",
+        "187.180.212.28/32",
+        "200.181.118.98/32",
+      ])
+      "description" = ""
+      "from_port" = 2049
+      "ipv6_cidr_blocks" = tolist([])
+      "prefix_list_ids" = tolist([])
+      "protocol" = "tcp"
+      "security_groups" = toset([])
+      "self" = false
+      "to_port" = 2049
+    },
+  ])
+  "name" = "acesso-efs"
+  "name_prefix" = ""
+  "owner_id" = "654654346517"
+  "revoke_rules_on_delete" = false
+  "tags" = tomap({
+    "Name" = "Acesso_EFS"
+  })
+  "tags_all" = tomap({
+    "Environment" = "Projeto_20"
+    "Management" = "Terraform"
+    "Name" = "Acesso_EFS"
+    "Terraform" = "true"
+  })
+  "timeouts" = null /* object */
+  "vpc_id" = "vpc-02795e4448760d4c2"
+}
+sg_efs_id = "sg-0c78ba781d6766463"
+sg_http_id = "sg-0d5de1b225de934d2"
+sg_rds_id = "sg-0ce3578e758a58008"
+sg_ssh_id = "sg-07f08dbf3ca3e08f3"
+ssm_atach_role = {
+  "id" = "ec2-ssm-role-20240916212003454000000002"
+  "policy_arn" = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  "role" = "ec2-ssm-role"
+}
+ssm_role = "ec2-ssm-role"
+vpc_azs_id = tolist([
+  "us-east-1a",
+  "us-east-1b",
+  "us-east-1c",
+])
+vpc_name = "Projeto_20-vpc"
+vpc_private_subnets_id = [
+  "subnet-0e46f4f0c6b113d93",
+  "subnet-04ba6b75d61ab16c6",
+  "subnet-0dcdf75754d822205",
+]
+vpc_public_subnets_id = [
+  "subnet-029d1d8aa9bbc0959",
+  "subnet-0508f283d227d98d2",
+  "subnet-0fc4cc831c8d1740e",
+]
+
+
+Changes to Outputs:
+  + vpc_database_subnet_arns              = [
+      + "arn:aws:ec2:us-east-1:654654346517:subnet/subnet-0b9f85fd7cc2928b0",
+      + "arn:aws:ec2:us-east-1:654654346517:subnet/subnet-0320d92e25aa29d2b",
+      + "arn:aws:ec2:us-east-1:654654346517:subnet/subnet-089e52f03f4c1df06",
+    ]
+  + vpc_private_subnets_cidr_blocks       = [
+      + "10.20.201.0/24",
+      + "10.20.202.0/24",
+      + "10.20.203.0/24",
+    ]
+  + vpc_public_subnets_cidr_blocks        = [
+      + "10.20.101.0/24",
+      + "10.20.102.0/24",
+      + "10.20.103.0/24",
+    ]
+  + vpc_vpc_cidr_block                    = "10.20.0.0/16"
+  + vpc_vpc_id                            = "vpc-02795e4448760d4c2"
+
+

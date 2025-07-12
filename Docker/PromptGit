@@ -1,0 +1,11 @@
+\u@\h \[\e[32m\]\w \[\e[91m\]$(git branch --show-current)\[\e[00m\]$
+
+export PS1='\u@\h \[\e[32m\]\w \[\e[91m\]$(git branch --show-current)\[\e[00m\]$'
+
+
+PS1='\u@\h \[\e[32m\]\w \[\e[91m\]$(git branch --show-current)\[\e[00m\]$ '
+PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+
+Token GitHub
+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
+

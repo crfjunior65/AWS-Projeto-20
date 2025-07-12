@@ -1,0 +1,37 @@
+sudo apt-get install nfs-kernel-server
+
+sudo apt-get update
+sudo apt-get install nfs-common
+
+sudo mount -t nfs4 -o krb5p <DNS_NAME>:/ /efs/ 
+mkdir efs
+
+### Video Orientando
+https://www.youtube.com/watch?v=1iSGnOlYPkc
+sudo apt install binutils git
+Clonar diretorio
+git clone https://github.com/aws/efs-utils
+ir para dentro do diretorio clonado efs-utils
+./build-deb.sh
+instalar pacotes necessarios do EFS
+apt -y install ./build/amazon-efs-utils*deb
+
+
+Mount DNS
+
+sudo mount -t efs -o tls fs-0cf10983af21fb043:/ efs
+
+sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-0cf10983af21fb043.efs.us-east-1.amazonaws.com:/ efs
+
+Mount por IP
+
+sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport 10.20.201.80:/ efs
+
+
+
+
+
+
+EFS Fargate
+https://www.youtube.com/watch?v=txT9v6jiEaQ&t=1167s
+temos que criar um AccessPoint, para conectar o EFS ao ECS Fargate

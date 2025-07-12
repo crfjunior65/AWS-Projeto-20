@@ -1,0 +1,88 @@
+# Use a imagem base PHP com Apache
+FROM php:8.2-apache
+
+# Defina as variáveis de ambiente para o GLPI e o banco de dados
+ENV GLPI_VERSION="10.0.9"
+ENV GLPI_LANGUAGE="pt_BR"
+ENV DB_HOST="db"  
+# Substitua pelo nome/host do banco de dados MySQL
+ENV DB_USER="glpi_user"  
+# Substitua pelo usuário do banco de dados
+ENV DB_PASSWORD="glpi_password"  
+# Substitua pela senha do banco de dados
+ENV DB_NAME="glpi_db"  
+# Substitua pelo nome do banco de dados
+
+# Atualize os pacotes e instale as dependências do sistema
+RUN apt-get update && apt-get install -y \
+    mariadb-client \
+    wget \
+    unzip \
+    libldap2-dev \
+    zlib1g-dev \
+    libicu-dev \
+    libxml2-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libmariadb-dev \
+    git \
+    --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+# Instalar extensões PHP necessárias zip ldap
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd intl mysqli pdo_mysql opcache
+
+# Habilite o Zend OPcache e outros módulos do Apache
+RUN docker-php-ext-enable opcache \
+    && a2enmod rewrite
+
+# Instale o Composer (necessário para o marketplace e dependências do GLPI)
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Baixar o GLPI e descompactá-lo no diretório correto
+RUN wget https://github.com/glpi-project/glpi/releases/download/${GLPI_VERSION}/glpi-${GLPI_VERSION}.tgz \
+    && tar -xvzf glpi-${GLPI_VERSION}.tgz -C /var/www/html/ \
+    && rm glpi-${GLPI_VERSION}.tgz
+
+# Mova diretórios de dados para fora da raiz da web por segurança
+RUN mkdir -p /var/glpi-data \
+    && mv /var/www/html/glpi/files /var/glpi-data/files \
+    && mv /var/www/html/glpi/config /var/glpi-data/config \
+    && ln -s /var/glpi-data/files /var/www/html/glpi/files \
+    && ln -s /var/glpi-data/config /var/www/html/glpi/config
+
+# Configuração de segurança de sessões e cookies
+RUN echo "php_value[session.cookie_httponly] = 1" >> /usr/local/etc/php/conf.d/security.ini \
+    && echo "php_value[session.cookie_secure] = 1" >> /usr/local/etc/php/conf.d/security.ini
+
+# Ajuste permissões do Apache para o GLPI
+RUN chown -R www-data:www-data /var/www/html/glpi /var/glpi-data \
+    && chmod -R 755 /var/www/html/glpi /var/glpi-data
+
+# Configurar o DocumentRoot do Apache para a pasta public do GLPI
+RUN sed -i "s|DocumentRoot /var/www/html|DocumentRoot /var/www/html/glpi/public|g" /etc/apache2/sites-available/000-default.conf
+
+# Instalação do GLPI via CLI
+#RUN php /var/www/html/glpi/bin/console db:install \
+#    --db-host=${DB_HOST} \
+#    --db-user=${DB_USER} \
+#    --db-password=${DB_PASSWORD} \
+#    --db-name=${DB_NAME} \
+#    --default-language=${GLPI_LANGUAGE} \
+#    --no-interaction
+
+# Exponha a porta 80 para o Apache
+EXPOSE 80
+
+# Inicie o Apache
+CMD ["apache2-foreground"]
+
+
+# Rodar
+#docker run -d -p 80:80 \
+ # -e DB_HOST=seu_db_host \
+ # -e DB_USER=seu_usuario \
+ # -e DB_PASSWORD=sua_senha \
+ # -e DB_NAME=seu_db_name \
+ # glpi

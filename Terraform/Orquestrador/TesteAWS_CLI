@@ -1,0 +1,5 @@
+ws configure --profile crfjunior
+AWS Access Key ID [None]: AKIAZQ3DQSUKXNAEB2PT
+AWS Secret Access Key [None]: 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
+Default region name [None]: us-east-1
+Default output format [None]: json

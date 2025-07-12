@@ -1,0 +1,7 @@
+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
+
+
+curl --request GET \
+--url "https://api.github.com/octocat" \
+--header "Authorization: Bearer ghp_w9nh515D9iVULoHv7ZfpkBNeGfiSrx2IuSlc" \
+--header "X-GitHub-Api-Version: 2022-11-28"
